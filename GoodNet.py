@@ -28,21 +28,17 @@ def getEntropy(img, cleanX, model, entropyRange):
     overlaid_x = [0] * entropyRange
 
     for i in range(entropyRange):
-        result = (superimpose(img, cleanX[i]))
-        overlaid_x[i] = result
+        overlaid_x[i] = (superimpose(img, cleanX[i]))
 
-    overlaid_x = np.array(overlaid_x)
-    overlaid_y = model.predict(overlaid_x)
+    overlaid_y = model.predict(np.array(overlaid_x))
     entropySum = -np.nansum(overlaid_y * np.log2(overlaid_y))
-
     return entropySum
 
 # data preparation
 X, y = data_loader(data_filename)
 n = len(X)
 cleanX, cleanY = data_loader(clean_data_filename)
-cleanN = len(cleanX)
-entropyRange = int(cleanN * 0.1)
+entropyRange = int(len(cleanX) * 0.1)
 model = keras.models.load_model(model_filename)
 
 # processing
@@ -50,11 +46,6 @@ predicts = []
 for i in range(n):
     x = X[i]
     entropyX = getEntropy(x, cleanX, model, entropyRange)
-    if entropyX < ethd:
-        predicts.append(n + 1)
-    else:
-        label = model.predict(np.array(x))
-        predict.append(label)
-
+    predicts.append(n + 1 if entropyX < ethd else model.predict(np.array(x)))
 
 print(predicts)
